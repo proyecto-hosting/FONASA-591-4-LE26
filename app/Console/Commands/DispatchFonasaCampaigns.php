@@ -41,4 +41,4 @@ class DispatchFonasaCampaigns extends Command
         $this->newLine();
         $this->info("¡Éxito! {$count} correos han sido enviados a la cola de procesamiento.");
     }
-}
+}  
