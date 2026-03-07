@@ -6,7 +6,7 @@
   packages = [
     pkgs.php82
     pkgs.php82Packages.composer
-    pkgs.nodejs_20
+    pkgs.nodejs_21
     pkgs.postgresql # Cliente psql para conectarnos a Cloud SQL
     pkgs.google-cloud-sdk # Herramienta gcloud para interactuar con tu proyecto en GCP
   ];
