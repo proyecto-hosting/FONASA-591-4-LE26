@@ -31,8 +31,9 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 # 7. Ajustamos permisos para que Apache pueda escribir en storage y cache
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 8. Exponemos el puerto 80
-EXPOSE 80
+# --- EL FIX PARA CLOUD RUN ---
+# Le decimos a Apache que escuche en el puerto dinámico que Google Cloud Run le asigne
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
 # Comando para iniciar Apache
 CMD ["apache2-foreground"]
