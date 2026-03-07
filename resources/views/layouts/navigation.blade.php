@@ -16,6 +16,10 @@
                     <x-nav-link :href="route('campaigns.index')" :active="request()->routeIs('campaigns.*')">
                         {{ __('Campañas') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('reports.traceability')" :active="request()->routeIs('reports.traceability')">
+                        {{ __('Trazabilidad') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -70,6 +74,10 @@
 
             <x-responsive-nav-link :href="route('campaigns.index')" :active="request()->routeIs('campaigns.*')">
                 {{ __('Campañas') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link :href="route('reports.traceability')" :active="request()->routeIs('reports.traceability')">
+                {{ __('Trazabilidad') }}
             </x-responsive-nav-link>
         </div>
 

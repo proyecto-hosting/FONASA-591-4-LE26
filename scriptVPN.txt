@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Campaign;
+use App\Models\Recipient;
+use League\Csv\Reader; // Librería recomendada para leer CSVs rápido
+
+class SyncFonasaFiles extends Command
+{
+    protected $signature = 'fonasa:sync-sftp';
+    protected $description = 'Conecta al SFTP de FONASA via VPN, descarga el CSV y los PDFs, y arma la campaña en base de datos.';
+
+    public function handle()
+    {
+        $this->info('Iniciando conexión segura con SFTP FONASA...');
+
+        // 1. Conexión al disco SFTP (configurado previamente en config/filesystems.php)
+        $sftp = Storage::disk('sftp_fonasa');
+
+        // 2. Buscar el archivo CSV de la campaña del día
+        $files = $sftp->files('entregas_diarias');
+        $csvFile = collect($files)->first(fn($file) => str_ends_with($file, '.csv'));
+
+        if (!$csvFile) {
+            $this->warn('No hay campañas nuevas en el servidor.');
+            return;
+        }
+
+        $this->info("Archivo encontrado: {$csvFile}. Descargando y procesando...");
+
+        // 3. Descargar el CSV a nuestro almacenamiento local temporal
+        $localCsvPath = storage_path('app/private/temp_campaign.csv');
+        file_put_contents($localCsvPath, $sftp->get($csvFile));
+
+        // 4. Crear la campaña en nuestra base de datos PostgreSQL
+        $campaign = Campaign::create([
+            'name' => 'Campaña Diaria - ' . date('d/m/Y'),
+            'type' => 'Notificación Masiva',
+            'status' => 'pendiente',
+            'total_emails' => 0 // Lo actualizaremos al final
+        ]);
+
+        // 5. Leer el CSV y armar los destinatarios
+        $csv = Reader::createFromPath($localCsvPath, 'r');
+        $csv->setDelimiter(';'); // Asumiendo formato separado por punto y coma
+        $csv->setHeaderOffset(0);
+
+        $count = 0;
+        foreach ($csv as $record) {
+            $rut = $record['RUT'];
+            $pdfName = "carta_{$rut}.pdf";
+
+            // Descargar el PDF correspondiente desde el SFTP
+            if ($sftp->exists("entregas_diarias/pdfs/{$pdfName}")) {
+                Storage::disk('local')->put(
+                    "fonasa_campaigns/{$pdfName}", 
+                    $sftp->get("entregas_diarias/pdfs/{$pdfName}")
+                );
+            }
+
+            // Guardar en la base de datos
+            Recipient::create([
+                'campaign_id' => $campaign->id,
+                'rut' => $rut,
+                'email' => $record['Email'],
+                'status' => 'pendiente'
+            ]);
+            $count++;
+        }
+
+        // Actualizar el total y limpiar
+        $campaign->update(['total_emails' => $count]);
+        unlink($localCsvPath);
+        
+        // Opcional: Mover el archivo en el SFTP a una carpeta de "procesados"
+        // $sftp->move($csvFile, 'procesados/' . basename($csvFile));
+
+        $this->info("¡Sincronización completada! Campaña encolada con {$count} destinatarios.");
+    }
+}

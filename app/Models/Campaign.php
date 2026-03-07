@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Campaign extends Model
 {
+    use HasFactory;
     // Permitimos que el script llene estos campos masivamente
     protected $fillable = [
         'name', 

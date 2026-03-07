@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Excluimos la ruta del webhook de la validación CSRF
+        $middleware->validateCsrfTokens(except: [
+            'webhook/sendgrid',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

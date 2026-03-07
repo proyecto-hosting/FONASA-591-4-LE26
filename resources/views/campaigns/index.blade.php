@@ -50,12 +50,20 @@
                                     @if($campaign->status == 'pendiente')
                                         <form action="{{ route('campaigns.dispatch', $campaign) }}" method="POST" onsubmit="return confirm('¿Estás seguro de encolar y despachar esta campaña?');">
                                             @csrf
-                                            <button type="submit" class="text-white bg-indigo-600 hover:bg-indigo-900 px-3 py-1 rounded-md text-sm transition-colors">
+                                            <button type="submit" class="text-white bg-indigo-600 hover:bg-indigo-900 px-3 py-1 rounded-md text-sm transition-colors shadow-sm">
                                                 Aprobar y Enviar
                                             </button>
                                         </form>
                                     @else
-                                        <span class="text-gray-400">Enviada</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                Procesada
+                                            </span>
+                                            <a href="{{ route('campaigns.export', $campaign) }}" class="inline-flex items-center text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded-md text-sm transition-colors shadow-sm" title="Descargar Reporte Comercial">
+                                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                                Exportar CSV
+                                            </a>
+                                        </div>
                                     @endif
                                 </td>
                             </tr>
