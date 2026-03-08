@@ -32,7 +32,7 @@ class CampaignController extends Controller
         }
 
         // Actualizamos el estado de la campaña general a 'procesada'
-        $campaign->update(['status' => 'procesada']);
+        $campaign->update(['status' => 'procesada']); 
 
         // Devolvemos al usuario a la vista con un mensaje de éxito
         return back()->with('status', "Campaña aprobada. {$recipients->count()} correos han sido encolados para su envío en segundo plano.");
