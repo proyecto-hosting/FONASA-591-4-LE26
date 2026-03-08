@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Recipient extends Model
 {
     // Le decimos a Laravel que el ID no es numérico autoincremental, sino un UUID (String)
     protected $keyType = 'string';
     public $incrementing = false;
+    // 2. Usar el trait dentro de la clase
+    use HasUuids;
+    // 3. Desactivar la protección de asignación masiva para permitir guardar el email y el status
+    protected $guarded = [];
 
     // Permitimos la asignación masiva de estos campos
     protected $fillable = [
