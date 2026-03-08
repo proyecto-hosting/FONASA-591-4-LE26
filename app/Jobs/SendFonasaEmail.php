@@ -27,7 +27,7 @@ class SendFonasaEmail implements ShouldQueue
     {
         try {
             // Enviamos el correo
-            Mail::to($this->recipient->email)->send(new FonasaCampaignEmail($this->recipient));
+            Mail::to($this->recipient->email)->send(new \App\Mail\FonasaCampaignEmail($this->recipient));
 
             // Actualizamos el estado a "enviado"
             $this->recipient->update([
@@ -35,11 +35,13 @@ class SendFonasaEmail implements ShouldQueue
                 'sent_at' => Carbon::now(),
             ]);
 
-        } catch (\Exception $e) {
-            // Si el proveedor (SendGrid/Mailgun) falla, guardamos el error para la reportería
+        } catch (\Throwable $e) { // <-- EL CAMBIO MAGICO: Throwable atrapa TODO
+            // Si cualquier cosa falla (SendGrid, Vistas, Errores fatales), lo guardamos
+            \Illuminate\Support\Facades\Log::error('Fallo en Job de Correo: ' . $e->getMessage());
+            
             $this->recipient->update([
                 'status' => 'rebotado',
-                'bounce_reason' => $e->getMessage(),
+                'bounce_reason' => substr($e->getMessage(), 0, 250), // Guardamos los primeros 250 caracteres del error
             ]);
         }
     }
