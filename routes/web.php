@@ -7,6 +7,23 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SftpController;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Recipient; 
+use App\Mail\CobranzaTestMail;
+
+Route::get('/disparar-prueba', function () {
+    $correoDestino = 'tu_correo_personal@gmail.com'; 
+
+    // 2. Cambia EmailLog por Recipient (Asegúrate de que los campos coincidan con tu tabla)
+    $log = Recipient::create([
+        'email_address' => $correoDestino, 
+        'status' => 'pending'
+    ]);
+
+    Mail::to($correoDestino)->send(new CobranzaTestMail($log->id));
+
+    return "Correo enviado. ID del log: " . $log->id;
+});
 
 Route::get('/', function () {
     return view('welcome');
