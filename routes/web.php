@@ -12,17 +12,27 @@ use App\Models\Recipient;
 use App\Mail\CobranzaTestMail;
 
 Route::get('/disparar-prueba', function () {
-    $correoDestino = 'tu_correo_personal@gmail.com'; 
+    $correoDestino = 'tu_correo_personal@gmail.com'; // Pon tu correo real aquí
 
-    // 2. Cambia EmailLog por Recipient (Asegúrate de que los campos coincidan con tu tabla)
-    $log = Recipient::create([
-        'email_address' => $correoDestino, 
+    // 1. Buscamos la primera campaña que exista, o creamos una de prueba
+    // (Asegúrate de tener importado App\Models\Campaign arriba)
+    $campana = \App\Models\Campaign::firstOrCreate(
+        ['name' => 'Campaña Prueba Webhook'],
+        ['type' => 'pae'] // Pon un tipo válido según tu BD
+    );
+
+    // 2. Creamos el destinatario asociado a esa campaña
+    $log = \App\Models\Recipient::create([
+        'campaign_id' => $campana->id,
+        'email' => $correoDestino, // ⚠️ OJO: Cambia 'email' por el nombre real de tu columna (ej: 'correo', 'email_address')
         'status' => 'pending'
+        // Si tu tabla pide RUT obligatorio, agrégalo aquí: 'rut' => '11111111-1'
     ]);
 
-    Mail::to($correoDestino)->send(new CobranzaTestMail($log->id));
+    // 3. Disparamos SendGrid
+    \Illuminate\Support\Facades\Mail::to($correoDestino)->send(new \App\Mail\CobranzaTestMail($log->id));
 
-    return "Correo enviado. ID del log: " . $log->id;
+    return "Correo enviado con éxito. ID del log: " . $log->id;
 });
 
 Route::get('/', function () {
