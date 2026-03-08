@@ -25,8 +25,9 @@ Route::get('/disparar-prueba', function () {
     $log = \App\Models\Recipient::create([
         'campaign_id' => $campana->id,
         'email' => $correoDestino, // ⚠️ OJO: Cambia 'email' por el nombre real de tu columna (ej: 'correo', 'email_address')
-        'status' => 'pending'
+        'status' => 'pending',
         // Si tu tabla pide RUT obligatorio, agrégalo aquí: 'rut' => '11111111-1'
+        'rut' => '-167525784'
     ]);
 
     // 3. Disparamos SendGrid
