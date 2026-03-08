@@ -1,0 +1,6 @@
+rut,nombre,email,tipo_notificacion,monto_deuda
+12.345.678-9,Juan Perez,juan.perez@correo-temporal.cl,Aviso Cobranza,150000
+9876543-2,Maria Gonzalez,maria.g@correo-temporal.cl,Beneficio Aprobado,0
+19.555.444-K,Carlos Soto,info@claudd.io,Aviso Cobranza,45000
+16.499.510-0,Nataly Inostroza,nataly.21.86@gmail.com,Aviso Cobranza,500000
+16.752.578-4,Claudio Leiva,claudio.leiva.t@gmail.com,Beneficio Aprobado,50000
