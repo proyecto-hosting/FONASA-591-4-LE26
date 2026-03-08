@@ -43,28 +43,7 @@ class SftpController extends Controller
         $previewData = [];
 
         // 2. PREPARAMOS LOS DATOS DE LOS DESTINATARIOS
-        foreach ($lines as $line) {
-            if (empty(trim($line))) continue;
-            
-            $data = str_getcsv($line);
-            
-            if (count($data) >= 3) {
-                $rut = str_replace(['.', '-'], '', $data[0]); 
-                $email = $data[2]; // Extraemos solo el correo, ignorando el nombre
-                
-                $recipientsData[] = [
-                    'id' => Str::uuid()->toString(), // <-- Inyectamos el UUID seguro
-                    'campaign_id' => $campaign->id,
-                    'rut' => $rut,
-                    'email' => $email,
-                    'status' => 'pendiente',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
 
-                $previewData[] = "RUT: $rut | Destino: $email";
-            }
-        }
 
         // 3. INSERCIÓN MASIVA
         if (!empty($recipientsData)) {
