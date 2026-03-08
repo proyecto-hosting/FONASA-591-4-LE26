@@ -6,6 +6,7 @@ use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WebhookController;
+use App\Http\Controllers\DashboardController;
 
 // Agrégala junto a la ruta de tu dashboard o campañas
 Route::get('/trazabilidad', [ReportController::class, 'traceability'])->name('reports.traceability');
@@ -17,9 +18,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // Rutas protegidas por contraseña (Laravel Breeze)
 Route::middleware(['auth', 'verified'])->group(function () {

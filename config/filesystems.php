@@ -47,6 +47,22 @@ return [
             'report' => false,
         ],
 
+        'fonasa' => [
+            // Si en el .env dice 'local', usa el disco duro. Si dice 'sftp', usa la red.
+            'driver' => env('FONASA_DISK_DRIVER', 'local'), 
+            
+            // Ruta para cuando es local
+            'root' => env('FONASA_DISK_DRIVER', 'local') === 'local' 
+                        ? storage_path('app/sftp_mock') 
+                        : '/ruta/remota/entregas', // Ruta real de FONASA en el futuro
+            
+            // Credenciales para cuando pasemos a Producción (se ignoran en local)
+            'host' => env('FONASA_SFTP_HOST'),
+            'username' => env('FONASA_SFTP_USERNAME'),
+            'password' => env('FONASA_SFTP_PASSWORD'),
+            'port' => env('FONASA_SFTP_PORT', 22),
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
