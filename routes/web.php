@@ -12,6 +12,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Disparador manual para la cola en Cloud Run (Demo)
+Route::post('/sys/procesar-cola', function () {
+    \Illuminate\Support\Facades\Log::info('Iniciando procesamiento de colas por demanda...');
+    
+    // Ejecuta el worker, pero se detiene automáticamente cuando la cola queda vacía
+    \Illuminate\Support\Facades\Artisan::call('queue:work', [
+        '--stop-when-empty' => true,
+        '--max-time' => 60 // Evita que Cloud Run mate el proceso por tiempo
+    ]);
+    
+    return back()->with('status', 'Motor de envíos ejecutado: Se despacharon los correos encolados.');
+})->name('sys.queue.process');
+
 // Ruta pública para el Webhook
 Route::post('/webhook/sendgrid', [WebhookController::class, 'handleSendgrid']);
 
