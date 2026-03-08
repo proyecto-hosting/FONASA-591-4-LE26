@@ -76,6 +76,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+        // Ruta temporal para correr migraciones en Google Cloud SQL
+    Route::get('/sys/migrar', function () {
+        try {
+            // Ejecuta el comando migrate forzándolo para producción
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            
+            return "¡Migraciones ejecutadas con éxito en Cloud SQL! Revisa tu base de datos.";
+        } catch (\Exception $e) {
+            return "Error al migrar: " . $e->getMessage();
+        }
+    });
 });
 
 require __DIR__.'/auth.php';
