@@ -1,43 +1,39 @@
 <?php
 
-
-use App\Http\Controllers\CampaignController;
-use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\DashboardController;
-
-// Agrégala junto a la ruta de tu dashboard o campañas
-Route::get('/trazabilidad', [ReportController::class, 'traceability'])->name('reports.traceability');
-
-// Ruta pública para el Webhook de SendGrid
-Route::post('/webhook/sendgrid', [WebhookController::class, 'handleSendgrid']);
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SftpController; // <-- NUEVO: Importamos el SftpController
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// Ruta pública para el Webhook
+Route::post('/webhook/sendgrid', [WebhookController::class, 'handleSendgrid']);
 
-// Rutas protegidas por contraseña (Laravel Breeze)
+// Rutas protegidas (Requieren Login)
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Reemplazamos el dashboard por defecto por el nuestro
-    Route::get('/dashboard', [ReportController::class, 'dashboard'])->name('dashboard');
+    
+    // 1. Un único Dashboard oficial apuntando al controlador correcto
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Módulo de Campañas (Aprobación)
+    // 2. NUEVO: La ruta que recibe el clic del botón SFTP
+    Route::post('/sftp/sync', [SftpController::class, 'syncNow'])->name('sftp.sync');
+
+    // Módulo de Campañas
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
     Route::post('/campaigns/{campaign}/dispatch', [CampaignController::class, 'dispatchCampaign'])->name('campaigns.dispatch');
+    Route::get('/campaigns/{campaign}/export', [CampaignController::class, 'exportCsv'])->name('campaigns.export');
 
-    // Módulo de Reportería Específica
+    // Módulo de Trazabilidad y Reportes
+    Route::get('/trazabilidad', [ReportController::class, 'traceability'])->name('reports.traceability');
     Route::get('/reports/search', [ReportController::class, 'search'])->name('reports.search');
 
-    // Ruta para descargar el reporte CSV de una campaña
-    Route::get('/campaigns/{campaign}/export', [App\Http\Controllers\CampaignController::class, 'exportCsv'])->name('campaigns.export');
-
-    // Rutas de Perfil (las trae Breeze por defecto)
+    // Rutas de Perfil (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
