@@ -6,36 +6,45 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\SftpController; // <-- NUEVO: Importamos el SftpController
+use App\Http\Controllers\SftpController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Disparador manual para la cola en Cloud Run (Demo)
-Route::post('/sys/procesar-cola', function () {
-    \Illuminate\Support\Facades\Log::info('Iniciando procesamiento de colas por demanda...');
-    
-    // Ejecuta el worker, pero se detiene automáticamente cuando la cola queda vacía
-    \Illuminate\Support\Facades\Artisan::call('queue:work', [
-        '--stop-when-empty' => true,
-        '--max-time' => 60 // Evita que Cloud Run mate el proceso por tiempo
-    ]);
-    
-    return back()->with('status', 'Motor de envíos ejecutado: Se despacharon los correos encolados.');
-})->name('sys.queue.process');
-
-// Ruta pública para el Webhook
+// Ruta pública para el Webhook de SendGrid
 Route::post('/webhook/sendgrid', [WebhookController::class, 'handleSendgrid']);
 
 // Rutas protegidas (Requieren Login)
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // 1. Un único Dashboard oficial apuntando al controlador correcto
+    // 1. Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // 2. NUEVO: La ruta que recibe el clic del botón SFTP
+    // 2. Ruta de Sincronización SFTP
     Route::post('/sftp/sync', [SftpController::class, 'syncNow'])->name('sftp.sync');
+
+    // 3. Disparador manual para la cola en Cloud Run (Demo con Rayos X)
+    Route::post('/sys/procesar-cola', function () {
+        // Forzamos la limpieza de la caché de configuración
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        
+        // Contamos cuántos trabajos hay realmente en la tabla jobs
+        $jobsCount = \Illuminate\Support\Facades\DB::table('jobs')->count();
+        
+        if ($jobsCount === 0) {
+            return back()->with('status', '⚠️ EL MOTOR NO ENCONTRÓ TAREAS: La tabla "jobs" de PostgreSQL está vacía. Verifica tu archivo .env en Cloud Run.');
+        }
+
+        // Ejecuta el worker forzando explícitamente la conexión a base de datos
+        \Illuminate\Support\Facades\Artisan::call('queue:work', [
+            'connection' => 'database',
+            '--stop-when-empty' => true,
+            '--max-time' => 60
+        ]);
+        
+        return back()->with('status', "🚀 Motor ejecutado con éxito. Se procesaron $jobsCount correos de la tabla jobs.");
+    })->name('sys.queue.process');
 
     // Módulo de Campañas
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
