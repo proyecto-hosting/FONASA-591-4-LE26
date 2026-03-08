@@ -1,7 +1,7 @@
-# Usamos la imagen oficial de PHP con Apache para facilitar la configuración
+# Usamos la imagen oficial de PHP con Apache
 FROM php:8.2-apache
 
-# 1. Instalamos dependencias del sistema y extensiones de PHP necesarias para Laravel y PostgreSQL
+# 1. Instalamos dependencias, Postgres, Zip y ahora Node.js (con NPM)
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libpng-dev \
@@ -9,12 +9,15 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
+    curl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && docker-php-ext-install pdo pdo_pgsql pgsql gd zip
 
-# 2. Habilitamos el módulo rewrite de Apache (vital para las rutas de Laravel)
+# 2. Habilitamos el módulo rewrite de Apache
 RUN a2enmod rewrite
 
-# 3. Configuramos el DocumentRoot de Apache hacia la carpeta /public de Laravel
+# 3. Configuramos el DocumentRoot de Apache
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
@@ -25,15 +28,18 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # 5. Copiamos los archivos del proyecto al contenedor
 COPY . /var/www/html
 
-# 6. Instalamos las dependencias de PHP (sin las de desarrollo para que pese menos)
+# 6. Instalamos las dependencias de PHP
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# 7. Ajustamos permisos para que Apache pueda escribir en storage y cache
+# 7. Compilamos el Frontend (Tailwind y Vite) - ESTA ES LA MAGIA
+RUN npm install
+RUN npm run build
+
+# 8. Ajustamos permisos
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# --- EL FIX PARA CLOUD RUN ---
-# Le decimos a Apache que escuche en el puerto dinámico que Google Cloud Run le asigne
+# 9. Le decimos a Apache que escuche en el puerto dinámico de Google
 RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-# Comando para iniciar Apache
+# Comando para iniciar
 CMD ["apache2-foreground"]
