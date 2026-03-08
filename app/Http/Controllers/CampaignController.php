@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
+    
+    
     public function index()
     {
         $campaigns = Campaign::orderBy('created_at', 'desc')->get();
@@ -17,25 +19,31 @@ class CampaignController extends Controller
 
     public function dispatchCampaign(Campaign $campaign)
     {
-        // Buscamos los destinatarios pendientes que pertenezcan a esta campaña específica
-        $recipients = Recipient::where('campaign_id', $campaign->id)
-                               ->where('status', 'pendiente')
-                               ->get();
+        try {
+            // 1. Buscamos destinatarios
+            $recipients = Recipient::where('campaign_id', $campaign->id)
+                                   ->where('status', 'pendiente')
+                                   ->get();
 
-        if ($recipients->isEmpty()) {
-            return back()->with('status', 'Esta campaña ya fue procesada o no tiene destinatarios pendientes.');
+            if ($recipients->isEmpty()) {
+                return back()->with('status', 'Aviso: Esta campaña ya fue procesada o no tiene destinatarios pendientes en la base de datos.');
+            }
+
+            // 2. Intentamos encolar (Aquí es donde probablemente está explotando)
+            foreach ($recipients as $recipient) {
+                SendFonasaEmail::dispatch($recipient);
+            }
+
+            // 3. Si sobrevive al paso 2, actualiza el estado
+            $campaign->update(['status' => 'procesada']);
+
+            return back()->with('status', "¡Éxito! Campaña aprobada. {$recipients->count()} correos han sido encolados para su envío en segundo plano.");
+
+        } catch (\Exception $e) {
+            // EL CAZA-ERRORES: Si algo falla, ataja el error y lo muestra en la vista
+            \Illuminate\Support\Facades\Log::error('Fallo al despachar campaña: ' . $e->getMessage());
+            return back()->with('status', '💥 ERROR CRÍTICO AL ENCOLAR: ' . $e->getMessage());
         }
-
-        // Enviamos cada correo a la tabla de 'jobs' (el motor asíncrono)
-        foreach ($recipients as $recipient) {
-            SendFonasaEmail::dispatch($recipient);
-        }
-
-        // Actualizamos el estado de la campaña general a 'procesada'
-        $campaign->update(['status' => 'procesada']); 
-
-        // Devolvemos al usuario a la vista con un mensaje de éxito
-        return back()->with('status', "Campaña aprobada. {$recipients->count()} correos han sido encolados para su envío en segundo plano.");
     }
 
     public function exportCsv(Campaign $campaign)
