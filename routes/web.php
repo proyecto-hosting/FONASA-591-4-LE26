@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SftpController;
+
 use Illuminate\Support\Facades\Mail;
 use App\Models\Recipient; 
 use App\Mail\CobranzaTestMail;
@@ -14,24 +15,20 @@ use App\Mail\CobranzaTestMail;
 Route::get('/disparar-prueba', function () {
     $correoDestino = 'tu_correo_personal@gmail.com'; // Pon tu correo real aquí
 
-    // 1. Buscamos la primera campaña que exista, o creamos una de prueba
-    // (Asegúrate de tener importado App\Models\Campaign arriba)
     $campana = \App\Models\Campaign::firstOrCreate(
         ['name' => 'Campaña Prueba Webhook'],
-        ['type' => 'pae'] // Pon un tipo válido según tu BD
+        ['type' => 'pae'] 
     );
 
-    // 2. Creamos el destinatario asociado a esa campaña
-    $log = \App\Models\Recipient::create([
+    $log = Recipient::create([
         'campaign_id' => $campana->id,
-        'email' => $correoDestino, // ⚠️ OJO: Cambia 'email' por el nombre real de tu columna (ej: 'correo', 'email_address')
+        'email' => $correoDestino, 
         'status' => 'pending',
-        // Si tu tabla pide RUT obligatorio, agrégalo aquí: 'rut' => '11111111-1'
-        'rut' => '-167525784'
+        'rut' => '167525784',
+        'pdf_filename' => 'prueba_cobranza.pdf' // Agregado para evitar el error de "Not null violation"
     ]);
 
-    // 3. Disparamos SendGrid
-    \Illuminate\Support\Facades\Mail::to($correoDestino)->send(new \App\Mail\CobranzaTestMail($log->id));
+    Mail::to($correoDestino)->send(new CobranzaTestMail($log->id));
 
     return "Correo enviado con éxito. ID del log: " . $log->id;
 });
@@ -46,25 +43,17 @@ Route::post('/webhook/sendgrid', [WebhookController::class, 'handleSendgrid']);
 // Rutas protegidas (Requieren Login)
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // 1. Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // 2. Ruta de Sincronización SFTP
     Route::post('/sftp/sync', [SftpController::class, 'syncNow'])->name('sftp.sync');
 
-    // 3. Disparador manual para la cola en Cloud Run (Demo con Rayos X)
     Route::post('/sys/procesar-cola', function () {
-        // Forzamos la limpieza de la caché de configuración
         \Illuminate\Support\Facades\Artisan::call('config:clear');
-        
-        // Contamos cuántos trabajos hay realmente en la tabla jobs
         $jobsCount = \Illuminate\Support\Facades\DB::table('jobs')->count();
         
         if ($jobsCount === 0) {
-            return back()->with('status', '⚠️ EL MOTOR NO ENCONTRÓ TAREAS: La tabla "jobs" de PostgreSQL está vacía. Verifica tu archivo .env en Cloud Run.');
+            return back()->with('status', '⚠️ EL MOTOR NO ENCONTRÓ TAREAS: La tabla "jobs" de PostgreSQL está vacía.');
         }
 
-        // Ejecuta el worker forzando explícitamente la conexión a base de datos
         \Illuminate\Support\Facades\Artisan::call('queue:work', [
             'connection' => 'database',
             '--stop-when-empty' => true,

@@ -2,39 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Campaign;
-use App\Models\Recipient;
 use Illuminate\Http\Request;
+use App\Models\CampaignReport;
+use App\Models\Recipient; 
 
 class ReportController extends Controller
 {
-    public function dashboard()
+    // Carga el Dashboard Consolidado
+    public function traceability()
     {
-        // Calculamos las métricas en tiempo real para las tarjetas
-        $stats = [
-            'total_campaigns' => Campaign::count(),
-            'total_emails' => Recipient::count(),
-            'sent_emails' => Recipient::where('status', 'enviado')->count(),
-            'bounced_emails' => Recipient::where('status', 'rebotado')->count(),
-        ];
-
-        return view('dashboard', compact('stats'));
+        // Traemos los reportes ordenados por la fecha de extracción (los más nuevos primero)
+        $reports = CampaignReport::orderBy('extraction_date', 'desc')->get();
+        
+        return view('reports.traceability', compact('reports'));
     }
 
-    public function traceability(Request $request)
+    // El buscador específico que exige FONASA
+    public function search(Request $request)
     {
-        $query = $request->input('query'); // Puede ser RUT o Email
-        $recipient = null;
+        $query = $request->input('query');
+        
+        // Buscamos por RUT o Email, trayendo también los datos de la campaña asociada
+        $results = Recipient::with('campaign')
+            ->where('rut', $query)
+            ->orWhere('email', $query)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        if ($query) {
-            // Buscamos el último envío que coincida con el RUT o el Email
-            $recipient = Recipient::where('rut', $query)
-                                  ->orWhere('email', $query)
-                                  ->with('campaign') // Traemos los datos de la campaña asociada
-                                  ->orderBy('created_at', 'desc')
-                                  ->first();
-        }
-
-        return view('reports.traceability', compact('recipient', 'query'));
+        return view('reports.search_results', compact('results', 'query'));
     }
 }
