@@ -12,7 +12,7 @@
 </head>
 <body class="antialiased text-gray-900 font-sans bg-gray-50 selection:bg-cyan-500 selection:text-white">
     
-    <nav class="absolute top-0 w-full z-50 px-6 py-4 flex justify-between items-center">
+<nav class="absolute top-0 w-full z-50 px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-2">
             <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -26,9 +26,6 @@
                     <a href="{{ url('/dashboard') }}" class="font-semibold text-white hover:text-cyan-300 transition-colors">Ir al Dashboard</a>
                 @else
                     <a href="{{ route('login') }}" class="font-semibold text-white hover:text-cyan-300 transition-colors py-2">Iniciar Sesión</a>
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="font-semibold bg-cyan-500 hover:bg-cyan-400 text-gray-900 px-4 py-2 rounded-lg transition-all shadow-lg hover:shadow-cyan-500/30">Registrar Evaluador</a>
-                    @endif
                 @endauth
             </div>
         @endif
@@ -49,9 +46,14 @@
                 Arquitectura dedicada en Google Cloud para el procesamiento masivo, despacho asíncrono y auditoría de trazabilidad exigida por las bases técnicas.
             </p>
             
-            <div class="flex justify-center gap-4">
-                <a href="{{ route('login') }}" class="bg-cyan-500 hover:bg-cyan-400 text-gray-900 font-bold px-8 py-3 rounded-lg text-lg transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transform hover:-translate-y-1">
-                    Ingresar al Demo
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-8">
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="bg-cyan-500 hover:bg-cyan-400 text-gray-900 font-bold px-8 py-3 rounded-lg text-lg transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] transform hover:-translate-y-1">
+                        Registrar Evaluador
+                    </a>
+                @endif
+                <a href="{{ route('login') }}" class="text-cyan-300 hover:text-white font-semibold px-6 py-3 rounded-lg text-lg transition-colors border border-cyan-500/30 hover:border-cyan-400 bg-cyan-900/20">
+                    Ya tengo cuenta
                 </a>
             </div>
         </div>
