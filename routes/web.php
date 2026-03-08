@@ -77,15 +77,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-        // Ruta temporal para correr migraciones en Google Cloud SQL
-    Route::get('/sys/migrar', function () {
+    Route::get('/sys/forzar-vista', function () {
         try {
-            // Ejecuta el comando migrate forzándolo para producción
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            \Illuminate\Support\Facades\DB::statement("
+                CREATE OR REPLACE VIEW campaign_reports_view AS
+                SELECT 
+                    c.id AS campaign_id,
+                    c.name AS campaign_name,
+                    c.type AS campaign_type,
+                    c.created_at AS extraction_date,
+                    COUNT(r.id) AS total_sent,
+                    SUM(CASE WHEN r.status IN ('entregado', 'leído') THEN 1 ELSE 0 END) AS total_received,
+                    SUM(CASE WHEN r.status = 'leído' THEN 1 ELSE 0 END) AS total_opened,
+                    SUM(CASE WHEN r.status = 'rebotado' THEN 1 ELSE 0 END) AS total_errors
+                FROM campaigns c
+                LEFT JOIN recipients r ON c.id = r.campaign_id
+                GROUP BY c.id, c.name, c.type, c.created_at;
+            ");
             
-            return "¡Migraciones ejecutadas con éxito en Cloud SQL! Revisa tu base de datos.";
+            return "¡Vista 'campaign_reports_view' creada a la fuerza directamente en PostgreSQL!";
         } catch (\Exception $e) {
-            return "Error al migrar: " . $e->getMessage();
+            return "Error creando la vista: " . $e->getMessage();
         }
     });
 });
