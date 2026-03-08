@@ -38,11 +38,7 @@ class FonasaCampaignEmail extends Mailable
 
     public function attachments(): array
     {
-        // Adjuntamos el PDF desde la carpeta segura (private) donde lo guardó el SFTP
-        return [
-            Attachment::fromStorageDisk('local', 'fonasa_testing/' . $this->recipient->pdf_filename)
-                ->as($this->recipient->pdf_filename)
-                ->withMime('application/pdf'),
-        ];
+        // Desactivamos temporalmente los adjuntos para la demo ya que los PDF físicos no existen
+        return [];
     }
 }
