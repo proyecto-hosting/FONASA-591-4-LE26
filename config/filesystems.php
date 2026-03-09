@@ -30,6 +30,27 @@ return [
 
     'disks' => [
 
+        // DISCO LOCAL PARA PRUEBAS (En Project IDX)
+        'fonasa_local' => [
+            'driver' => 'local',
+            'root' => storage_path('app/fonasa_inbox'),
+            'throw' => false,
+        ],
+
+        // PLACEHOLDER PARA PRODUCCIÓN (Google Cloud Storage)
+        'fonasa_gcs' => [
+            'driver' => 'gcs',
+            'key_file_path' => env('GOOGLE_CLOUD_KEY_FILE', null), // Credenciales (si usas Service Account)
+            'key_file' => [], // Alternativa si pasas el JSON directo
+            'project_id' => env('GOOGLE_CLOUD_PROJECT_ID', 'nexo-host-666'), 
+            'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET', 'fonasa-remesas-inbox'),
+            'path_prefix' => env('GOOGLE_CLOUD_STORAGE_PATH_PREFIX', ''),
+            'storage_api_uri' => null, 
+            'apiEndpoint' => null, 
+            'visibility' => 'private', 
+            'throw' => false,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
