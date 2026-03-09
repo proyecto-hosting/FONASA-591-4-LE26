@@ -11,11 +11,7 @@ class ReportController extends Controller
     // Carga el Dashboard Consolidado
     public function traceability()
     {
-        // Al usar DB::table leemos la vista de PostgreSQL de forma cruda y sin filtros de Laravel
-        $reports = DB::table('campaign_reports_view')
-                     ->orderBy('extraction_date', 'desc')
-                     ->get();
-        
+        $reports = \App\Models\CampaignReport::orderBy('extraction_date', 'desc')->get();
         return view('reports.traceability', compact('reports'));
     }
 
