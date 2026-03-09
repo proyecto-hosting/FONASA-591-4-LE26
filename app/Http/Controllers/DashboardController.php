@@ -26,15 +26,14 @@ class DashboardController extends Controller
 
         // 2. Últimas Campañas para la tabla rápida del dashboard
         $recentCampaigns = Campaign::orderBy('created_at', 'desc')->take(5)->get();
-
-        return view('dashboard', compact(
-            'totalCampaigns', 
-            'totalSent', 
-            'totalDelivered', 
-            'totalOpened', 
-            'totalBounced',
-            'recentCampaigns'
-        ));
+         
+          $stats = [
+         'total_campaigns' => Campaign::count(),
+          'total_emails'    => Recipient::count(),
+          'sent_emails'     => Recipient::where('status', 'enviado')->count(),
+          'bounced_emails'  => Recipient::whereIn('status', ['rebote', 'error'])->count(),
+          ];
+         
 
         return view('dashboard', compact('stats'));
     }
