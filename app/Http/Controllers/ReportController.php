@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\CampaignReport;
+use Illuminate\Support\Facades\DB; // IMPORTANTE: Importamos la fachada DB
 use App\Models\Recipient; 
 
 class ReportController extends Controller
@@ -11,8 +11,10 @@ class ReportController extends Controller
     // Carga el Dashboard Consolidado
     public function traceability()
     {
-        // Traemos los reportes ordenados por la fecha de extracción (los más nuevos primero)
-        $reports = CampaignReport::orderBy('extraction_date', 'desc')->get();
+        // Al usar DB::table leemos la vista de PostgreSQL de forma cruda y sin filtros de Laravel
+        $reports = DB::table('campaign_reports_view')
+                     ->orderBy('extraction_date', 'desc')
+                     ->get();
         
         return view('reports.traceability', compact('reports'));
     }
@@ -22,7 +24,6 @@ class ReportController extends Controller
     {
         $query = $request->input('query');
         
-        // Buscamos por RUT o Email, trayendo también los datos de la campaña asociada
         $results = Recipient::with('campaign')
             ->where('rut', $query)
             ->orWhere('email', $query)

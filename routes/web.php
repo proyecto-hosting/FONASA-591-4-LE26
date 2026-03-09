@@ -100,6 +100,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return "Error creando la vista: " . $e->getMessage();
         }
     });
+
+    Route::get('/sys/debug-vista', function () {
+        $datos = \Illuminate\Support\Facades\DB::select('SELECT * FROM campaign_reports_view');
+        return response()->json($datos);
+    });
 });
 
 require __DIR__.'/auth.php';
