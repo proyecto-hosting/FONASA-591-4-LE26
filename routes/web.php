@@ -67,14 +67,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
     Route::post('/campaigns/{campaign}/dispatch', [CampaignController::class, 'dispatchCampaign'])->name('campaigns.dispatch');
     Route::get('/campaigns/{campaign}/export', [CampaignController::class, 'exportCsv'])->name('campaigns.export');
-
     // Módulo de Trazabilidad y Reportes
     Route::get('/trazabilidad', [ReportController::class, 'traceability'])->name('reports.traceability');
     Route::get('/reports/search', [ReportController::class, 'search'])->name('reports.search');
-    
+    // NUEVA RUTA: Exportar historial individual
+    Route::get('/reports/search/export', [ReportController::class, 'exportSearchResults'])->name('reports.search.export');    
     // NUEVA RUTA: Exportar consolidado
     Route::get('/trazabilidad/exportar', [ReportController::class, 'exportConsolidated'])->name('reports.export');
-
     // Rutas de Perfil (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -24,10 +24,18 @@
 
             @if(isset($query))
                 @if($results->count() > 0)
-                    <div class="mb-4">
-                        <p class="text-gray-600 text-sm">Se encontraron <span class="font-bold">{{ $results->count() }}</span> envíos históricos para: <b>{{ $query }}</b></p>
-                    </div>
-
+                <div class="mb-6 flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <p class="text-gray-700 text-sm mb-3 sm:mb-0">
+                        Se encontraron <span class="font-bold text-indigo-600">{{ $results->count() }}</span> envíos históricos para: <b class="text-gray-900">{{ $query }}</b>
+                    </p>
+                    
+                    <a href="{{ route('reports.search.export', ['query' => $query]) }}" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded inline-flex items-center justify-center transition-colors shadow-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Exportar Historial del RUT
+                    </a>
+                </div>
                     @foreach($results as $recipient)
                         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6 border border-gray-200">
                             <div class="p-6">
