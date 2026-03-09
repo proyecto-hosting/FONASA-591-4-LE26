@@ -28,12 +28,11 @@ class ReportController extends Controller
 
         return view('reports.search_results', compact('results', 'query'));
     }
-    
-    public function exportConsolidated()
+
+        public function exportConsolidated()
     {
         $reports = DB::table('campaign_reports_view')->orderBy('extraction_date', 'desc')->get();
 
-        // Configuramos las cabeceras para forzar la descarga del archivo
         $headers = [
             "Content-type"        => "text/csv; charset=UTF-8",
             "Content-Disposition" => "attachment; filename=consolidado_fonasa_" . date('Y-m-d_H-i') . ".csv",
@@ -42,17 +41,20 @@ class ReportController extends Controller
             "Expires"             => "0"
         ];
 
-        // Creamos el archivo al vuelo en la memoria
         $callback = function() use($reports) {
             $file = fopen('php://output', 'w');
             
-            // Truco vital: Insertamos el BOM de UTF-8 para que Excel lea bien los acentos
+            // 1. EL TRUCO DE LOS ACENTOS: Insertamos el BOM (Byte Order Mark)
+            // Esto le dice a Excel: "Ojo, soy un archivo UTF-8, respeta las Ñ y los tildes"
             fputs($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // Fila 1: Los títulos de las columnas (usamos ';' como separador para Excel en español)
+            // 2. EL TRUCO DEL SEPARADOR: Forzamos a Excel a usar el punto y coma
+            // Esta línea es invisible para el usuario pero mágica para Excel
+            fputs($file, "sep=;\n");
+
+            // Fila de encabezados usando ';'
             fputcsv($file, ['Campaña', 'Fecha Extracción', 'Total Enviados', 'Recibidos', 'Leídos', 'Rebotados'], ';');
 
-            // Llenamos los datos
             foreach ($reports as $report) {
                 fputcsv($file, [
                     $report->campaign_name,
