@@ -11,29 +11,30 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        /* * VERSIÓN MVP: 
-         * Mientras creamos las tablas reales, enviaremos los contadores en cero.
-         * Cuando tengas tus modelos listos, simplemente borra este bloque
-         * y descomenta el bloque "VERSIÓN PRODUCCIÓN" de abajo.
-         */
-        /*
-        $stats = [
-            'total_campaigns' => 0,
-            'total_emails'    => 0,
-            'sent_emails'     => 0,
-            'bounced_emails'  => 0,
-        ]; */
-
+        // 1. Métricas Globales (Contando los estados exactos de tu BD)
+        $totalCampaigns = Campaign::count();
+        $totalSent = Recipient::count(); // Todos los encolados/enviados
         
-        // VERSIÓN PRODUCCIÓN (Lógica real con PostgreSQL):
-         
-          $stats = [
-         'total_campaigns' => Campaign::count(),
-          'total_emails'    => Recipient::count(),
-          'sent_emails'     => Recipient::where('status', 'enviado')->count(),
-          'bounced_emails'  => Recipient::whereIn('status', ['rebote', 'error'])->count(),
-          ];
-         
+        // Entregados (Incluye los que ya fueron leídos)
+        $totalDelivered = Recipient::whereIn('status', ['entregado', 'leído'])->count();
+        
+        // Abiertos
+        $totalOpened = Recipient::where('status', 'leído')->count();
+        
+        // REBOTADOS (Aquí estaba el problema, forzamos a buscar 'rebotado')
+        $totalBounced = Recipient::where('status', 'rebotado')->count();
+
+        // 2. Últimas Campañas para la tabla rápida del dashboard
+        $recentCampaigns = Campaign::orderBy('created_at', 'desc')->take(5)->get();
+
+        return view('dashboard', compact(
+            'totalCampaigns', 
+            'totalSent', 
+            'totalDelivered', 
+            'totalOpened', 
+            'totalBounced',
+            'recentCampaigns'
+        ));
 
         return view('dashboard', compact('stats'));
     }
