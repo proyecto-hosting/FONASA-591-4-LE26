@@ -9,13 +9,21 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6 text-gray-900 border-b border-gray-200 bg-gray-50">
-                    <form method="GET" action="{{ route('reports.search') }}" class="flex gap-4">
+                <div class="p-6 text-gray-900 border-b border-gray-200 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                    
+                    <form method="GET" action="{{ route('reports.search') }}" class="flex gap-4 w-full md:w-auto flex-1">
                         <input type="text" name="query" placeholder="Ingrese RUT (ej: 11111111-1) o Email..." class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded transition-colors">
                             Auditar Envío
                         </button>
                     </form>
+
+                    <a href="{{ route('reports.export') }}" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded inline-flex items-center justify-center transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Exportar a Excel
+                    </a>
                 </div>
             </div>
 

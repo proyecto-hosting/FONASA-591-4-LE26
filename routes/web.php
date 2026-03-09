@@ -71,6 +71,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Módulo de Trazabilidad y Reportes
     Route::get('/trazabilidad', [ReportController::class, 'traceability'])->name('reports.traceability');
     Route::get('/reports/search', [ReportController::class, 'search'])->name('reports.search');
+    
+    // NUEVA RUTA: Exportar consolidado
+    Route::get('/trazabilidad/exportar', [ReportController::class, 'exportConsolidated'])->name('reports.export');
 
     // Rutas de Perfil (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

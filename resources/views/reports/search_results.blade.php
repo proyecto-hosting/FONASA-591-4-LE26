@@ -54,7 +54,9 @@
                                             @elseif($recipient->status == 'rebotado')
                                                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-red-100 text-red-800 uppercase">Rebotado</span>
                                                 @if($recipient->bounce_reason)
-                                                    <p class="text-xs text-red-600 mt-2 font-medium">Motivo: {{ $recipient->bounce_reason }}</p>
+                                                    <p class="text-xs text-red-600 mt-2 font-medium" title="Log técnico: {{ $recipient->bounce_reason }}">
+                                                        Motivo: {{ $recipient->friendly_bounce_reason }}
+                                                    </p>                                                
                                                 @endif
                                             @else
                                                 <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full bg-blue-100 text-blue-800 uppercase">{{ $recipient->status }}</span>
