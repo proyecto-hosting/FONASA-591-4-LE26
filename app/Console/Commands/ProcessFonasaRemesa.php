@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Campaign;
 use App\Models\Recipient;
 use Illuminate\Support\Str;
+use App\Jobs\DispatchFonasaEmail;
 
 class ProcessFonasaRemesa extends Command
 {
@@ -28,7 +29,7 @@ class ProcessFonasaRemesa extends Command
             }
 
             foreach ($archivos as $archivo) {
-                if (str_ends_with(strtolower($archivo), '.csv')) {
+                if (str_ends_with(strtolower($archivo), '.csv') || str_ends_with(strtolower($archivo), '.txt')) {
                     $this->line("<fg=green>✓ Base de datos detectada:</> {$archivo}");
                     $this->procesarCSV($disco, $archivo);
                 } 
@@ -55,7 +56,7 @@ class ProcessFonasaRemesa extends Command
 
         // 1. Creamos una Campaña nueva en la BD usando el nombre del archivo
         $campana = Campaign::create([
-            'name' => 'Remesa FONASA - ' . str_replace('.csv', '', $archivo) . ' - ' . date('d/m/Y H:i'),
+            'name' => 'Remesa FONASA - ' . str_replace(['.csv', '.txt'], '', $archivo) . ' - ' . date('d/m/Y H:i'),
             'type' => 'Notificación Masiva',
             'status' => 'activa'
         ]);
@@ -77,14 +78,18 @@ class ProcessFonasaRemesa extends Command
 
             // Validamos que la fila tenga al menos 3 columnas
             if (count($datos) >= 3) {
-                // Insertamos en la base de datos
-                Recipient::create([
+                // 1. Insertamos en la base de datos y lo guardamos en la variable $destinatario
+                $destinatario = Recipient::create([
                     'campaign_id' => $campana->id,
                     'rut' => trim($datos[0]),
                     'email' => trim($datos[1]),
                     'pdf_filename' => trim($datos[2]),
-                    'status' => 'encolado' // ¡Estado vital para el siguiente paso!
+                    'status' => 'encolado'
                 ]);
+
+                // 2. ¡LA LÍNEA MÁGICA! Mandamos a este destinatario a la fila de trabajo
+                DispatchFonasaEmail::dispatch($destinatario);
+
                 $insertados++;
             }
         }

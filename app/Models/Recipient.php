@@ -63,4 +63,51 @@ class Recipient extends Model
 
         return 'Error de conexión con el servidor de correo del destinatario.';
     }
+
+    /**
+     * MUTADOR DE RUT
+     * Intercepta el RUT antes de guardarlo en la base de datos, 
+     * limpia puntos, guiones y espacios, y lo formatea a XXXXXXXX-X
+     */
+    public function setRutAttribute($value)
+    {
+        // 1. Limpieza extrema: Quitamos espacios, puntos, guiones y dejamos solo números y la K
+        $rutLimpio = preg_replace('/[^0-9kK]/', '', $value);
+        
+        // 2. Pasamos la 'k' a mayúscula por si la escribieron en minúscula
+        $rutLimpio = strtoupper($rutLimpio);
+
+        // Si por algún motivo enviaron un campo vacío, lo dejamos pasar para que la BD tire el error o lo maneje
+        if (empty($rutLimpio)) {
+            $this->attributes['rut'] = $value;
+            return;
+        }
+
+        // 3. Separamos el cuerpo del Dígito Verificador (el último carácter)
+        $cuerpo = substr($rutLimpio, 0, -1);
+        $dv = substr($rutLimpio, -1);
+
+        // 4. Armamos el formato estándar (Ej: 16752578-4) y lo pasamos al modelo
+        $this->attributes['rut'] = $cuerpo . '-' . $dv;
+    }
+
+    /**
+     * MUTADOR DE EMAIL
+     * Elimina espacios en blanco accidentales y fuerza minúsculas 
+     * para estandarizar la base de datos y evitar errores SMTP.
+     */
+    public function setEmailAttribute($value)
+    {
+        // trim() quita espacios al inicio y final. strtolower() pasa a minúscula.
+        $this->attributes['email'] = strtolower(trim($value));
+    }
+
+    /**
+     * MUTADOR DE NOMBRE DE ARCHIVO
+     * Previene que espacios invisibles rompan la búsqueda en Google Cloud Storage.
+     */
+    public function setPdfFilenameAttribute($value)
+    {
+        $this->attributes['pdf_filename'] = trim($value);
+    }
 }
